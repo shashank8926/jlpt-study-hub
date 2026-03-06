@@ -243,6 +243,24 @@ function scrollToTop() {
         behavior: 'smooth'
     });
 }
+
+    let lastScrollTop = 0;
+const navbar = document.querySelector('.control-panel');
+
+window.addEventListener('scroll', function() {
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    // 1. Hide/Show logic for the Top Bar
+    if (scrollTop > lastScrollTop && scrollTop > 100) {
+        // Scrolling Down - Hide it
+        navbar.classList.add('hidden');
+    } else {
+        // Scrolling Up - Show it
+        navbar.classList.remove('hidden');
+    }
+    
+    lastScrollTop = scrollTop;
+});
 </script>
 <button id="backToTop" onclick="scrollToTop()">↑ Top</button>
 </body>
