@@ -35,6 +35,28 @@
         
         .answer-box { background: #e8f5e9; border: 1px solid #c8e6c9; padding: 20px; border-radius: 10px; text-align: center; margin-top: 10px; width: 100%; max-width: 500px;}
         .hidden { display: none !important; }
+
+        #backToTop {
+    display: none; /* Hidden by default */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99;
+    border: none;
+    outline: none;
+    background-color: #e74c3c; /* Matches your header red */
+    color: white;
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 50%; /* Circular button */
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: opacity 0.3s;
+}
+
+#backToTop:hover {
+    background-color: #c0392b;
+}
     </style>
 </head>
 <body>
@@ -181,7 +203,25 @@ for (let i = 1; i <= 5; i++) {
     }
 
     window.onload = loadContent;
-</script>
 
+    // 1. Show the button when user scrolls down 300px
+window.onscroll = function() {
+    const btn = document.getElementById("backToTop");
+    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+        btn.style.display = "block";
+    } else {
+        btn.style.display = "none";
+    }
+};
+
+// 2. Scroll to top smoothly
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+</script>
+<button id="backToTop" onclick="scrollToTop()">↑ Top</button>
 </body>
 </html>
