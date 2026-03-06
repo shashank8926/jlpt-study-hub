@@ -9,11 +9,33 @@
         .container { max-width: 800px; margin: auto; }
         
         .control-panel { 
-            background: #ffffff; padding: 15px; border-radius: 10px; 
-            margin-bottom: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            position: sticky; top: 10px; z-index: 100;
-            display: flex; justify-content: center; gap: 10px; align-items: center; flex-wrap: wrap;
-        }
+            background: #ffffff; 
+    padding: 15px; 
+    border-radius: 0 0 10px 10px; /* Rounded only at the bottom */
+    text-align: center; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    
+    /* Sticky Setup */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    
+    /* Smooth transition for hiding/showing */
+    transition: top 0.3s ease-in-out;
+}
+
+        body {
+    padding-top: 80px;
+    padding-bottom: 80px; /* Space for the bottom duplicate if needed */
+}
+
+/* This class will be added via JavaScript when scrolling down */
+.control-panel.hidden {
+    top: -100px; /* Moves it off-screen */
+}
+        
         select, input[type="number"] { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; text-align: center; }
         
         button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
