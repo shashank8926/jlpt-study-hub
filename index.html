@@ -8,34 +8,36 @@
         body { font-family: sans-serif; background-color: #f7f9fc; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 800px; margin: auto; }
         
+        /* THE TOP PANEL: Now strictly stays at the top and scrolls away */
         .control-panel { 
             background: #ffffff; 
-    padding: 15px; 
-    border-radius: 0 0 10px 10px; /* Rounded only at the bottom */
-    text-align: center; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    
-    /* Sticky Setup */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    
-    /* Smooth transition for hiding/showing */
-    transition: top 0.3s ease-in-out;
-}
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            text-align: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative; 
+            z-index: 10;
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+            align-items: center; 
+            flex-wrap: wrap;
+        }
 
-        body {
-    padding-top: 80px;
-    padding-bottom: 80px; /* Space for the bottom duplicate if needed */
-}
+        /* THE BOTTOM PANEL: For easy "Next Class" access after scrolling down */
+        .bottom-nav {
+            margin: 40px 0 20px 0;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
 
-/* This class will be added via JavaScript when scrolling down */
-.control-panel.hidden {
-    top: -100px; /* Moves it off-screen */
-}
-        
         select, input[type="number"] { padding: 8px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; text-align: center; }
         
         button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
@@ -59,26 +61,19 @@
         .hidden { display: none !important; }
 
         #backToTop {
-    display: none; /* Hidden by default */
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 99;
-    border: none;
-    outline: none;
-    background-color: #e74c3c; /* Matches your header red */
-    color: white;
-    cursor: pointer;
-    padding: 15px;
-    border-radius: 50%; /* Circular button */
-    font-size: 18px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: opacity 0.3s;
-}
-
-#backToTop:hover {
-    background-color: #c0392b;
-}
+            display: none; 
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+            border: none;
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 50%; 
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -93,14 +88,14 @@
             <option value="5">N5</option>
         </select>
         <div style="display: flex; align-items: center; gap: 5px;">
-            <button class="btn-nav" onclick="changeClass(-1)">◀ Prev Class</button>
+            <button class="btn-nav" onclick="changeClass(-1)">◀ Prev</button>
             <input type="number" id="classInput" value="1" min="1" style="width: 50px;" onchange="loadContent()">
-            <button class="btn-nav" onclick="changeClass(1)">Next Class ▶</button>
+            <button class="btn-nav" onclick="changeClass(1)">Next ▶</button>
         </div>
         <button class="btn-load" onclick="loadContent()">Refresh</button>
     </div>
 
-    <header><h1 id="pageTitle">Loading Lesson Content...</h1></header>
+    <header><h1 id="pageTitle">Loading...</h1></header>
 
     <section>
         <h2>Sentences (例文)</h2>
@@ -121,15 +116,30 @@
         <h2>Chokkai (聴解)</h2>
         <div id="chokkai-list"></div>
     </section>
+
+    <div class="bottom-nav">
+        <button class="btn-nav" onclick="changeClass(-1)">◀ Previous Class</button>
+        <button class="btn-nav" onclick="changeClass(1)">Next Class ▶</button>
+    </div>
 </div>
 
+<button id="backToTop" onclick="scrollToTop()">↑</button>
+
 <script>
+    // Configuration for dynamic loop lengths
+    const lessonConfig = {
+        "n3": {
+            "c7": { sentences: 5, grammar: 5, chokkai: 3 }, // Example override
+        }
+    };
+
     function changeClass(step) {
         const input = document.getElementById('classInput');
         let newValue = parseInt(input.value) + step;
         if (newValue < 1) newValue = 1;
         input.value = newValue;
         loadContent();
+        scrollToTop(); // Jump back up to see the new lesson
     }
 
     function hideParent(element) {
@@ -138,19 +148,16 @@
     }
 
     function handleAudioError(audioElement) {
-        // This triggers only if BOTH mp3 and ogg fail
         audioElement.classList.add('hidden');
     }
 
     function generateAudioHTML(baseUrl) {
-        // Returns the HTML for a player that tries MP3 then OGG
         return `
-            <audio controls preload="none"  onerror="handleAudioError(this)">
+            <audio controls preload="none" onerror="handleAudioError(this)">
                 <source src="${baseUrl}.mp3" type="audio/mpeg">
                 <source src="${baseUrl}.ogg" type="audio/ogg">
             </audio>
         `;
-        
     }
 
     function loadContent() {
@@ -162,22 +169,24 @@
         
         document.getElementById('pageTitle').innerText = `JLPT N${level} - Class ${classNum}`;
 
+        // Get counts from config or default to 10/10/5
+        const counts = (lessonConfig[`n${level}`] && lessonConfig[`n${level}`][`c${classNum}`]) 
+                       ? lessonConfig[`n${level}`][`c${classNum}`] 
+                       : { sentences: 10, grammar: 10, chokkai: 5 };
+
         const sections = ['sentence-list', 'grammar-list', 'dokkai-list', 'chokkai-list'];
         sections.forEach(id => document.getElementById(id).innerHTML = '');
 
         // 1. Sentences
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= counts.sentences; i++) {
             const div = document.createElement('div');
             div.className = 'item-container';
-            div.innerHTML = `
-                <img src="${imgPath}${prefix}im${i}.jpg" onerror="hideParent(this)">
-                ${generateAudioHTML(`${audioPath}${prefix}a${i}`)}
-            `;
+            div.innerHTML = `<img src="${imgPath}${prefix}im${i}.jpg" onerror="hideParent(this)">${generateAudioHTML(`${audioPath}${prefix}a${i}`)}`;
             document.getElementById('sentence-list').appendChild(div);
         }
 
-        // 2. Grammar (+ sec)
-        for (let i = 1; i <= 10; i++) {
+        // 2. Grammar
+        for (let i = 1; i <= counts.grammar; i++) {
             const container = document.createElement('div');
             container.className = 'item-container';
             container.innerHTML = `
@@ -186,82 +195,52 @@
                 <div class="sec-item">
                     <img src="${imgPath}${prefix}bun${i}sec.jpg" onerror="hideParent(this)">
                     ${generateAudioHTML(`${audioPath}${prefix}bun${i}sec`)}
-                </div>
-            `;
+                </div>`;
             document.getElementById('grammar-list').appendChild(container);
         }
 
         // 3. Dokkai
         document.getElementById('dokkai-list').innerHTML = `
-            <div class="item-container">
-                <img src="${imgPath}${prefix}dokkai.jpg" onerror="hideParent(this)">
-            </div>
+            <div class="item-container"><img src="${imgPath}${prefix}dokkai.jpg" onerror="hideParent(this)"></div>
             <div class="answer-box">
                 <h3>Answer & Explanation</h3>
                 <img src="${imgPath}${prefix}getans.jpg" onerror="hideParent(this)">
                 ${generateAudioHTML(`${audioPath}${prefix}dokkai`)}
-            </div>
-        `;
+            </div>`;
 
         // 4. Chokkai
-for (let i = 1; i <= 5; i++) {
-    const div = document.createElement('div');
-    div.className = 'item-container';
-    div.innerHTML = `
-        <div class="chokkai-header">Chokkai ${i}</div>
-        <img src="${imgPath}${prefix}chokai${i}.jpg" onerror="this.style.display='none'">
-        
-        <p><strong>Question Audio:</strong></p>
-        ${generateAudioHTML(`${audioPath}${prefix}chokai${i}`)}
-        
-        <div class="answer-box">
-            <strong>Answer Audio:</strong><br>
-            ${generateAudioHTML(`${audioPath}${prefix}chokai${i}ans`)}
-        </div>
-    `;
-    document.getElementById('chokkai-list').appendChild(div);
-}
-        window.scrollTo(0, 0);
+        for (let i = 1; i <= counts.chokkai; i++) {
+            const div = document.createElement('div');
+            div.className = 'item-container';
+            div.innerHTML = `
+                <div class="chokkai-header">Chokkai ${i}</div>
+                <img src="${imgPath}${prefix}chokai${i}.jpg" onerror="this.style.display='none'">
+                <p><strong>Question Audio:</strong></p>
+                ${generateAudioHTML(`${audioPath}${prefix}chokai${i}`)}
+                <div class="answer-box">
+                    <strong>Answer Audio:</strong><br>
+                    ${generateAudioHTML(`${audioPath}${prefix}chokai${i}ans`)}
+                </div>`;
+            document.getElementById('chokkai-list').appendChild(div);
+        }
+    }
+
+    // Back to Top functionality
+    window.onscroll = function() {
+        const btn = document.getElementById("backToTop");
+        if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+            btn.style.display = "block";
+        } else {
+            btn.style.display = "none";
+        }
+    };
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     window.onload = loadContent;
-
-    // 1. Show the button when user scrolls down 300px
-window.onscroll = function() {
-    const btn = document.getElementById("backToTop");
-    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-        btn.style.display = "block";
-    } else {
-        btn.style.display = "none";
-    }
-};
-
-// 2. Scroll to top smoothly
-function scrollToTop() {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-}
-
-    let lastScrollTop = 0;
-const navbar = document.querySelector('.control-panel');
-
-window.addEventListener('scroll', function() {
-    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-    // 1. Hide/Show logic for the Top Bar
-    if (scrollTop > lastScrollTop && scrollTop > 100) {
-        // Scrolling Down - Hide it
-        navbar.classList.add('hidden');
-    } else {
-        // Scrolling Up - Show it
-        navbar.classList.remove('hidden');
-    }
-    
-    lastScrollTop = scrollTop;
-});
 </script>
-<button id="backToTop" onclick="scrollToTop()">↑ Top</button>
+
 </body>
 </html>
