@@ -101,11 +101,12 @@
     function generateAudioHTML(baseUrl) {
         // Returns the HTML for a player that tries MP3 then OGG
         return `
-            <audio controls onerror="handleAudioError(this)">
+            <audio controls preload="none"  onerror="handleAudioError(this)">
                 <source src="${baseUrl}.mp3" type="audio/mpeg">
                 <source src="${baseUrl}.ogg" type="audio/ogg">
             </audio>
         `;
+        
     }
 
     function loadContent() {
