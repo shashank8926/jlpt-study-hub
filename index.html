@@ -8,7 +8,6 @@
         body { font-family: sans-serif; background-color: #f7f9fc; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 800px; margin: auto; }
         
-        /* THE TOP PANEL: Now strictly stays at the top and scrolls away */
         .control-panel { 
             background: #ffffff; 
             padding: 15px; 
@@ -25,7 +24,6 @@
             flex-wrap: wrap;
         }
 
-        /* THE BOTTOM PANEL: For easy "Next Class" access after scrolling down */
         .bottom-nav {
             margin: 40px 0 20px 0;
             padding: 25px;
@@ -117,6 +115,11 @@
         <div id="chokkai-list"></div>
     </section>
 
+    <section id="vocab-section">
+        <h2>Vocabulary (語彙)</h2>
+        <div id="vocabulary-list"></div>
+    </section>
+
     <div class="bottom-nav">
         <button class="btn-nav" onclick="changeClass(-1)">◀ Previous Class</button>
         <button class="btn-nav" onclick="changeClass(1)">Next Class ▶</button>
@@ -126,10 +129,9 @@
 <button id="backToTop" onclick="scrollToTop()">↑</button>
 
 <script>
-    // Configuration for dynamic loop lengths
     const lessonConfig = {
         "n3": {
-            "c7": { sentences: 5, grammar: 5, chokkai: 3 }, // Example override
+            "c7": { sentences: 5, grammar: 5, chokkai: 3 },
         }
     };
 
@@ -139,7 +141,7 @@
         if (newValue < 1) newValue = 1;
         input.value = newValue;
         loadContent();
-        scrollToTop(); // Jump back up to see the new lesson
+        scrollToTop();
     }
 
     function hideParent(element) {
@@ -169,12 +171,11 @@
         
         document.getElementById('pageTitle').innerText = `JLPT N${level} - Class ${classNum}`;
 
-        // Get counts from config or default to 10/10/5
         const counts = (lessonConfig[`n${level}`] && lessonConfig[`n${level}`][`c${classNum}`]) 
                        ? lessonConfig[`n${level}`][`c${classNum}`] 
                        : { sentences: 10, grammar: 10, chokkai: 5 };
 
-        const sections = ['sentence-list', 'grammar-list', 'dokkai-list', 'chokkai-list'];
+        const sections = ['sentence-list', 'grammar-list', 'dokkai-list', 'chokkai-list', 'vocabulary-list'];
         sections.forEach(id => document.getElementById(id).innerHTML = '');
 
         // 1. Sentences
@@ -223,9 +224,22 @@
                 </div>`;
             document.getElementById('chokkai-list').appendChild(div);
         }
+
+        // 5. Vocabulary
+        const vocabList = document.getElementById('vocabulary-list');
+        const mainVocabDiv = document.createElement('div');
+        mainVocabDiv.className = 'item-container';
+        mainVocabDiv.innerHTML = `<img src="${imgPath}${prefix}vocab.jpg" onerror="hideParent(this)">`;
+        vocabList.appendChild(mainVocabDiv);
+
+        if (level === "1") {
+            const tableDiv = document.createElement('div');
+            tableDiv.className = 'item-container';
+            tableDiv.innerHTML = `<img src="${imgPath}${prefix}itable.jpg" onerror="hideParent(this)">`;
+            vocabList.appendChild(tableDiv);
+        }
     }
 
-    // Back to Top functionality
     window.onscroll = function() {
         const btn = document.getElementById("backToTop");
         if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
