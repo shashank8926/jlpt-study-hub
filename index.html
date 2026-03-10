@@ -120,6 +120,11 @@
         <div id="vocabulary-list"></div>
     </section>
 
+    <section id="adverb-section" class="hidden">
+        <h2>Adverbs (副詞)</h2>
+        <div id="adverb-list"></div>
+    </section>
+
     <div class="bottom-nav">
         <button class="btn-nav" onclick="changeClass(-1)">◀ Previous Class</button>
         <button class="btn-nav" onclick="changeClass(1)">Next Class ▶</button>
@@ -145,7 +150,8 @@
     }
 
     function hideParent(element) {
-        const target = element.closest('.item-container, .answer-box, .sec-item');
+        // Updated to hide the parent section if the adverb image is missing
+        const target = element.closest('.item-container, .answer-box, .sec-item, section');
         if (target) target.classList.add('hidden');
     }
 
@@ -175,7 +181,8 @@
                        ? lessonConfig[`n${level}`][`c${classNum}`] 
                        : { sentences: 10, grammar: 10, chokkai: 5 };
 
-        const sections = ['sentence-list', 'grammar-list', 'dokkai-list', 'chokkai-list', 'vocabulary-list'];
+        // Clear all lists
+        const sections = ['sentence-list', 'grammar-list', 'dokkai-list', 'chokkai-list', 'vocabulary-list', 'adverb-list'];
         sections.forEach(id => document.getElementById(id).innerHTML = '');
 
         // 1. Sentences
@@ -237,6 +244,20 @@
             tableDiv.className = 'item-container';
             tableDiv.innerHTML = `<img src="${imgPath}${prefix}itable.jpg" onerror="hideParent(this)">`;
             vocabList.appendChild(tableDiv);
+        }
+
+        // 6. Adverbs (N3 Only)
+        const adverbSection = document.getElementById('adverb-section');
+        const adverbList = document.getElementById('adverb-list');
+        
+        if (level === "3") {
+            adverbSection.classList.remove('hidden');
+            const div = document.createElement('div');
+            div.className = 'item-container';
+            div.innerHTML = `<img src="${imgPath}${prefix}adverb.jpg" onerror="hideParent(this)">`;
+            adverbList.appendChild(div);
+        } else {
+            adverbSection.classList.add('hidden');
         }
     }
 
