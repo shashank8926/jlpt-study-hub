@@ -238,14 +238,16 @@
             document.getElementById('grammar-list').appendChild(container);
         }
 
-        // 3. Dokkai
-// 3. Dokkai
+       // 3. Dokkai
+        // Handle the specific spelling typo for N2 Class 6 on the server
+        const dokkaiStr = (prefix === "n2c6") ? "dokai" : "dokkai";
+
         document.getElementById('dokkai-list').innerHTML = `
-            <div class="item-container"><img src="${imgPath}${prefix}dokai.jpg" onerror="hideParent(this)"></div>
+            <div class="item-container"><img src="${imgPath}${prefix}${dokkaiStr}.jpg" onerror="hideParent(this)"></div>
             <div class="answer-box">
                 <h3>Answer & Explanation</h3>
                 <img src="${imgPath}${prefix}getans.jpg" onerror="hideParent(this)">
-                ${generateAudioHTML(`${audioPath}${prefix}dokai`)}
+                ${generateAudioHTML(`${audioPath}${prefix}${dokkaiStr}`)}
             </div>`;
         // 4. Chokkai
         for (let i = 1; i <= counts.chokkai; i++) {
