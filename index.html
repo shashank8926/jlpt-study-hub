@@ -182,13 +182,35 @@
         scrollToTop();
     }
 
-    function hideParent(element) {
+function hideParent(element) {
         const target = element.closest('.item-container, .answer-box, .sec-item, section');
         if (target) target.classList.add('hidden');
     }
 
+    // NEW: Smart error handler for checking both Image and Audio
+    function handleMediaError(element) {
+        element.classList.add('hidden'); // Hide the broken item
+        element.dataset.failed = 'true'; // Mark this specific item as failed
+        
+        const container = element.closest('.item-container');
+        if (container) {
+            const img = container.querySelector('img');
+            const audio = container.querySelector('audio');
+            
+            // Check if they are either missing or have the 'failed' tag
+            const imgFailed = !img || img.dataset.failed === 'true';
+            const audioFailed = !audio || audio.dataset.failed === 'true';
+            
+            // Hide the parent container ONLY if BOTH the image and audio failed
+            if (imgFailed && audioFailed) {
+                container.classList.add('hidden');
+            }
+        }
+    }
+
+    // Redirect the audio error to our new smart handler
     function handleAudioError(audioElement) {
-        audioElement.classList.add('hidden');
+        handleMediaError(audioElement);
     }
 
     function generateAudioHTML(baseUrl) {
@@ -255,7 +277,7 @@
             div.className = 'item-container';
             div.innerHTML = `
                 <div class="chokkai-header">Chokkai ${i}</div>
-                <img src="${imgPath}${prefix}chokai${i}.jpg" onerror="hideParent(this)">
+                <img src="${imgPath}${prefix}chokai${i}.jpg" onerror="handleMediaError(this)">
                 <p><strong>Question Audio:</strong></p>
                 ${generateAudioHTML(`${audioPath}${prefix}chokai${i}`)}
                 <div class="answer-box">
@@ -264,7 +286,6 @@
                 </div>`;
             document.getElementById('chokkai-list').appendChild(div);
         }
-
         // 5. Vocabulary
         const vocabList = document.getElementById('vocabulary-list');
         const mainVocabDiv = document.createElement('div');
