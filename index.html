@@ -255,7 +255,7 @@
             div.className = 'item-container';
             div.innerHTML = `
                 <div class="chokkai-header">Chokkai ${i}</div>
-                <img src="${imgPath}${prefix}chokai${i}.jpg" onerror="this.style.display='none'">
+                <img src="${imgPath}${prefix}chokai${i}.jpg" onerror="hideParent(this)">
                 <p><strong>Question Audio:</strong></p>
                 ${generateAudioHTML(`${audioPath}${prefix}chokai${i}`)}
                 <div class="answer-box">
