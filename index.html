@@ -239,14 +239,14 @@
         }
 
         // 3. Dokkai
+// 3. Dokkai
         document.getElementById('dokkai-list').innerHTML = `
-            <div class="item-container"><img src="${imgPath}${prefix}dokkai.jpg" onerror="hideParent(this)"></div>
+            <div class="item-container"><img src="${imgPath}${prefix}dokai.jpg" onerror="hideParent(this)"></div>
             <div class="answer-box">
                 <h3>Answer & Explanation</h3>
                 <img src="${imgPath}${prefix}getans.jpg" onerror="hideParent(this)">
-                ${generateAudioHTML(`${audioPath}${prefix}dokkai`)}
+                ${generateAudioHTML(`${audioPath}${prefix}dokai`)}
             </div>`;
-
         // 4. Chokkai
         for (let i = 1; i <= counts.chokkai; i++) {
             const div = document.createElement('div');
