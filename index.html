@@ -182,12 +182,12 @@
         scrollToTop();
     }
 
-function hideParent(element) {
+    function hideParent(element) {
         const target = element.closest('.item-container, .answer-box, .sec-item, section');
         if (target) target.classList.add('hidden');
     }
 
-    // NEW: Smart error handler for checking both Image and Audio
+    // Smart error handler for checking both Image and Audio
     function handleMediaError(element) {
         element.classList.add('hidden'); // Hide the broken item
         element.dataset.failed = 'true'; // Mark this specific item as failed
@@ -208,16 +208,38 @@ function hideParent(element) {
         }
     }
 
-    // Redirect the audio error to our new smart handler
+    // Tries a fallback image before giving up
+    function handleImageFallback(img, fallbackSrc) {
+        if (!img.dataset.triedFallback) {
+            img.dataset.triedFallback = 'true'; // Mark that we are trying the backup
+            img.src = fallbackSrc;              // Swap the source to the backup URL
+        } else {
+            handleMediaError(img);              // Both failed, so hide it
+        }
+    }
+
+    // Redirect the audio error to our smart handler
     function handleAudioError(audioElement) {
         handleMediaError(audioElement);
     }
 
-    function generateAudioHTML(baseUrl) {
+    // Generates Audio HTML with optional fallback URLs
+    function generateAudioHTML(baseUrl, fallbackBaseUrl = null) {
+        let sources = `
+            <source src="${baseUrl}.mp3" type="audio/mpeg">
+            <source src="${baseUrl}.ogg" type="audio/ogg">
+        `;
+        
+        if (fallbackBaseUrl) {
+            sources += `
+            <source src="${fallbackBaseUrl}.mp3" type="audio/mpeg">
+            <source src="${fallbackBaseUrl}.ogg" type="audio/ogg">
+            `;
+        }
+
         return `
             <audio controls preload="none" onerror="handleAudioError(this)">
-                <source src="${baseUrl}.mp3" type="audio/mpeg">
-                <source src="${baseUrl}.ogg" type="audio/ogg">
+                ${sources}
             </audio>
         `;
     }
@@ -271,21 +293,40 @@ function hideParent(element) {
                 <img src="${imgPath}${prefix}getans.jpg" onerror="hideParent(this)">
                 ${generateAudioHTML(`${audioPath}${prefix}${dokkaiStr}`)}
             </div>`;
+            
         // 4. Chokkai
         for (let i = 1; i <= counts.chokkai; i++) {
             const div = document.createElement('div');
             div.className = 'item-container';
+            
+            // Define both spellings for Images
+            const imgPrimary = `${imgPath}${prefix}chokkai${i}.jpg`;
+            const imgBackup = `${imgPath}${prefix}chokai${i}.jpg`;
+            
+            // Define both spellings for Question Audio
+            const audioPrimary = `${audioPath}${prefix}chokkai${i}`;
+            const audioBackup = `${audioPath}${prefix}chokai${i}`;
+            
+            // Define both spellings for Answer Audio
+            const ansPrimary = `${audioPath}${prefix}chokkai${i}ans`;
+            const ansBackup = `${audioPath}${prefix}chokai${i}ans`;
+
             div.innerHTML = `
                 <div class="chokkai-header">Chokkai ${i}</div>
-                <img src="${imgPath}${prefix}chokai${i}.jpg" onerror="handleMediaError(this)">
+                
+                <img src="${imgPrimary}" onerror="handleImageFallback(this, '${imgBackup}')">
+                
                 <p><strong>Question Audio:</strong></p>
-                ${generateAudioHTML(`${audioPath}${prefix}chokai${i}`)}
+                ${generateAudioHTML(audioPrimary, audioBackup)}
+                
                 <div class="answer-box">
                     <strong>Answer Audio:</strong><br>
-                    ${generateAudioHTML(`${audioPath}${prefix}chokai${i}ans`)}
+                    ${generateAudioHTML(ansPrimary, ansBackup)}
                 </div>`;
+                
             document.getElementById('chokkai-list').appendChild(div);
         }
+
         // 5. Vocabulary
         const vocabList = document.getElementById('vocabulary-list');
         const mainVocabDiv = document.createElement('div');
