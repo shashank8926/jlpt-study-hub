@@ -162,7 +162,6 @@
         }
     };
 
-    // Dark Mode Toggle Function
     function toggleDarkMode() {
         document.body.classList.toggle('dark-mode');
         const btn = document.getElementById('darkModeBtn');
@@ -187,56 +186,61 @@
         if (target) target.classList.add('hidden');
     }
 
-    // Smart error handler for checking both Image and Audio
+    // UPDATED: Checks ALL audios properly before hiding the container
     function handleMediaError(element) {
-        element.classList.add('hidden'); // Hide the broken item
-        element.dataset.failed = 'true'; // Mark this specific item as failed
+        element.classList.add('hidden'); // Hide the broken item specifically
+        element.dataset.failed = 'true'; 
         
         const container = element.closest('.item-container');
         if (container) {
             const img = container.querySelector('img');
-            const audio = container.querySelector('audio');
+            const audios = container.querySelectorAll('audio'); // Gets Question AND Answer audio
             
-            // Check if they are either missing or have the 'failed' tag
             const imgFailed = !img || img.dataset.failed === 'true';
-            const audioFailed = !audio || audio.dataset.failed === 'true';
             
-            // Hide the parent container ONLY if BOTH the image and audio failed
-            if (imgFailed && audioFailed) {
+            // Check if every single audio element inside this container failed
+            let allAudiosFailed = true;
+            if (audios.length > 0) {
+                audios.forEach(audio => {
+                    if (audio.dataset.failed !== 'true') {
+                        allAudiosFailed = false; // Found a working audio!
+                    }
+                });
+            }
+            
+            // Hide parent ONLY if the image and ALL associated audios are missing
+            if (imgFailed && allAudiosFailed) {
                 container.classList.add('hidden');
             }
         }
     }
 
-    // Tries a fallback image before giving up
-    function handleImageFallback(img, fallbackSrc) {
-        if (!img.dataset.triedFallback) {
-            img.dataset.triedFallback = 'true'; // Mark that we are trying the backup
-            img.src = fallbackSrc;              // Swap the source to the backup URL
+    // NEW: Tries a list of fallback URLs sequentially
+    function tryNextImage(img) {
+        if (!img.dataset.urls) return;
+        let urls = img.dataset.urls.split(',');
+        urls.shift(); // Remove the URL that just failed
+        
+        if (urls.length > 0) {
+            img.dataset.urls = urls.join(','); // Update the remaining list
+            img.src = urls[0];                 // Try the next one
         } else {
-            handleMediaError(img);              // Both failed, so hide it
+            handleMediaError(img);             // Out of backups, hide it
         }
     }
 
-    // Redirect the audio error to our smart handler
     function handleAudioError(audioElement) {
         handleMediaError(audioElement);
     }
 
-    // Generates Audio HTML with optional fallback URLs
-    function generateAudioHTML(baseUrl, fallbackBaseUrl = null) {
-        let sources = `
-            <source src="${baseUrl}.mp3" type="audio/mpeg">
-            <source src="${baseUrl}.ogg" type="audio/ogg">
-        `;
+    // UPDATED: Accepts an array of URLs to generate fallback sources dynamically
+    function generateAudioHTML(urls) {
+        const baseUrls = Array.isArray(urls) ? urls : [urls];
+        let sources = baseUrls.map(url => `
+            <source src="${url}.mp3" type="audio/mpeg">
+            <source src="${url}.ogg" type="audio/ogg">
+        `).join('');
         
-        if (fallbackBaseUrl) {
-            sources += `
-            <source src="${fallbackBaseUrl}.mp3" type="audio/mpeg">
-            <source src="${fallbackBaseUrl}.ogg" type="audio/ogg">
-            `;
-        }
-
         return `
             <audio controls preload="none" onerror="handleAudioError(this)">
                 ${sources}
@@ -282,10 +286,8 @@
             document.getElementById('grammar-list').appendChild(container);
         }
 
-       // 3. Dokkai
-        // Handle the specific spelling typo for N2 Class 6 on the server
+        // 3. Dokkai
         const dokkaiStr = (prefix === "n2c6") ? "dokai" : "dokkai";
-
         document.getElementById('dokkai-list').innerHTML = `
             <div class="item-container"><img src="${imgPath}${prefix}${dokkaiStr}.jpg" onerror="hideParent(this)"></div>
             <div class="answer-box">
@@ -294,34 +296,29 @@
                 ${generateAudioHTML(`${audioPath}${prefix}${dokkaiStr}`)}
             </div>`;
             
-        // 4. Chokkai
+        // 4. Chokkai - WITH MULTIPLE DYNAMIC FALLBACKS
+        const chokkaiSpellings = ['chokkai', 'chokai', 'choukai', 'chookai'];
+
         for (let i = 1; i <= counts.chokkai; i++) {
             const div = document.createElement('div');
             div.className = 'item-container';
             
-            // Define both spellings for Images
-            const imgPrimary = `${imgPath}${prefix}chokkai${i}.jpg`;
-            const imgBackup = `${imgPath}${prefix}chokai${i}.jpg`;
-            
-            // Define both spellings for Question Audio
-            const audioPrimary = `${audioPath}${prefix}chokkai${i}`;
-            const audioBackup = `${audioPath}${prefix}chokai${i}`;
-            
-            // Define both spellings for Answer Audio
-            const ansPrimary = `${audioPath}${prefix}chokkai${i}ans`;
-            const ansBackup = `${audioPath}${prefix}chokai${i}ans`;
+            // Map our 4 spellings into image and audio URL arrays
+            const imgUrls = chokkaiSpellings.map(sp => `${imgPath}${prefix}${sp}${i}.jpg`);
+            const audioUrls = chokkaiSpellings.map(sp => `${audioPath}${prefix}${sp}${i}`);
+            const ansUrls = chokkaiSpellings.map(sp => `${audioPath}${prefix}${sp}${i}ans`);
 
             div.innerHTML = `
                 <div class="chokkai-header">Chokkai ${i}</div>
                 
-                <img src="${imgPrimary}" onerror="handleImageFallback(this, '${imgBackup}')">
+                <img src="${imgUrls[0]}" data-urls="${imgUrls.join(',')}" onerror="tryNextImage(this)">
                 
                 <p><strong>Question Audio:</strong></p>
-                ${generateAudioHTML(audioPrimary, audioBackup)}
+                ${generateAudioHTML(audioUrls)}
                 
                 <div class="answer-box">
                     <strong>Answer Audio:</strong><br>
-                    ${generateAudioHTML(ansPrimary, ansBackup)}
+                    ${generateAudioHTML(ansUrls)}
                 </div>`;
                 
             document.getElementById('chokkai-list').appendChild(div);
