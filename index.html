@@ -259,7 +259,7 @@ function generateAudioHTML(urls) {
 
         const counts = (lessonConfig[`n${level}`] && lessonConfig[`n${level}`][`c${classNum}`]) 
                        ? lessonConfig[`n${level}`][`c${classNum}`] 
-                       : { sentences: 10, grammar: 10, chokkai: 5 };
+                       : { sentences: 10, grammar: 10, chokkai: 2 };
 
         const sections = ['sentence-list', 'grammar-list', 'dokkai-list', 'chokkai-list', 'vocabulary-list', 'adverb-list'];
         sections.forEach(id => document.getElementById(id).innerHTML = '');
