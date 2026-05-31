@@ -187,14 +187,15 @@
     }
 
     // UPDATED: Checks ALL audios properly before hiding the container
+// RESTORED: Smart checker that requires both Image and Audio to be missing
     function handleMediaError(element) {
-        element.classList.add('hidden'); // Hide the broken item specifically
+        element.classList.add('hidden'); // Hide the specific broken item
         element.dataset.failed = 'true'; 
         
         const container = element.closest('.item-container');
         if (container) {
             const img = container.querySelector('img');
-            const audios = container.querySelectorAll('audio'); // Gets Question AND Answer audio
+            const audios = container.querySelectorAll('audio'); 
             
             const imgFailed = !img || img.dataset.failed === 'true';
             
@@ -214,7 +215,6 @@
             }
         }
     }
-
     // NEW: Tries a list of fallback URLs sequentially
     function tryNextImage(img) {
         if (!img.dataset.urls) return;
@@ -234,7 +234,7 @@
     }
 
     // UPDATED: Accepts an array of URLs to generate fallback sources dynamically
-    function generateAudioHTML(urls) {
+function generateAudioHTML(urls) {
         const baseUrls = Array.isArray(urls) ? urls : [urls];
         let sources = baseUrls.map(url => `
             <source src="${url}.mp3" type="audio/mpeg">
@@ -242,7 +242,7 @@
         `).join('');
         
         return `
-            <audio controls preload="none" onerror="handleAudioError(this)">
+            <audio controls preload="metadata" onerror="handleAudioError(this)">
                 ${sources}
             </audio>
         `;
