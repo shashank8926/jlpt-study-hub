@@ -286,8 +286,11 @@
             document.getElementById('grammar-list').appendChild(container);
         }
 
-        // 3. Dokkai
-        const dokkaiStr = (prefix === "n2c6") ? "dokai" : "dokkai";
+// 3. Dokkai
+        let dokkaiStr = "dokkai";
+        if (prefix === "n2c6") dokkaiStr = "dokai";
+        if (prefix === "n2c19") dokkaiStr = "dokkai1"; // <-- Added this exception for N2 Class 19
+
         document.getElementById('dokkai-list').innerHTML = `
             <div class="item-container"><img src="${imgPath}${prefix}${dokkaiStr}.jpg" onerror="hideParent(this)"></div>
             <div class="answer-box">
