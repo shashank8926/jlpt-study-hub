@@ -242,7 +242,7 @@ function generateAudioHTML(urls) {
         `).join('');
         
         return `
-            <audio controls preload="metadata" onerror="handleAudioError(this)">
+            <audio controls preload="none" onerror="handleAudioError(this)">
                 ${sources}
             </audio>
         `;
